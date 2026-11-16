@@ -2,14 +2,11 @@ import Combine
 import SwiftUI
 import SwiftData
 
-@main
-struct BronzusBoomApp: App {
-    
-    
-    
-    var body: some Scene {
+struct BronzusBoomApp: View {
+
+    var body: some View {
        
-            WindowGroup {
+            VStack {
                 if #available(iOS 17.0, *) {
                 RootView()
                         .modelContainer(for: [Find.self, BarterItem.self])
@@ -29,6 +26,7 @@ enum Keys {
     static let motto = "ravezation.profile.motto"
     static let emblem = "ravezation.profile.emblem"
     static let since = "ravezation.profile.since"
+    static let profilePhoto = "ravezation.profile.photo"
 }
 
 enum AppAppearance: String, CaseIterable, Identifiable {
@@ -3364,6 +3362,7 @@ struct ProfileView: View {
     @AppStorage(Keys.haptics) private var haptics = true
     @AppStorage(Keys.appearance) private var appearance = AppAppearance.system.rawValue
     @AppStorage(Keys.onboarded) private var onboarded = true
+    @AppStorage(Keys.profilePhoto) private var profilePhotoData: Data = Data()
     
     @State private var editing = false
     @State private var confirmWipe = false
@@ -3444,8 +3443,19 @@ struct ProfileView: View {
             .background(Palette.ink)
             
             HStack(alignment: .top, spacing: 16) {
-                EmblemBadge(symbol: Emblem.safe(emblem), size: 84)
-                    .padding(.top, 4)
+                Group {
+                    if !profilePhotoData.isEmpty, let ui = UIImage(data: profilePhotoData) {
+                        Image(uiImage: ui)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 84, height: 84)
+                            .clipShape(Circle())
+                            .overlay(Circle().strokeBorder(Palette.ink.opacity(0.2), lineWidth: 1.5))
+                    } else {
+                        EmblemBadge(symbol: Emblem.safe(emblem), size: 84)
+                    }
+                }
+                .padding(.top, 4)
                 VStack(alignment: .leading, spacing: 10) {
                     idField("name", name.isEmpty ? "Explorer" : name)
                     idField("rank", rank.title)
@@ -3693,10 +3703,16 @@ struct EditProfileView: View {
     @AppStorage(Keys.name) private var storedName = ""
     @AppStorage(Keys.motto) private var storedMotto = ""
     @AppStorage(Keys.emblem) private var storedEmblem = Emblem.binoculars.rawValue
-    
+    @AppStorage(Keys.profilePhoto) private var storedPhotoData: Data = Data()
+
     @State private var name = ""
     @State private var motto = ""
     @State private var emblem = Emblem.binoculars.rawValue
+    @State private var photoData: Data? = nil
+    @State private var pickerItem: PhotosPickerItem?
+    @State private var showCamera = false
+
+    private var cameraAvailable: Bool { UIImagePickerController.isSourceTypeAvailable(.camera) }
     
     var body: some View {
         NavigationStack {
@@ -3706,12 +3722,53 @@ struct EditProfileView: View {
                     VStack(alignment: .leading, spacing: 24) {
                         HStack {
                             Spacer()
-                            EmblemBadge(symbol: emblem, size: 100)
-                                .id(emblem)
-                                .transition(.scale(scale: 1.3).combined(with: .opacity))
+                            VStack(spacing: 14) {
+                                ZStack {
+                                    if let data = photoData, let ui = UIImage(data: data) {
+                                        Image(uiImage: ui)
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(width: 100, height: 100)
+                                            .clipShape(Circle())
+                                            .overlay(Circle().strokeBorder(Palette.ink.opacity(0.2), lineWidth: 1.5))
+                                    } else {
+                                        EmblemBadge(symbol: emblem, size: 100)
+                                            .id(emblem)
+                                            .transition(.scale(scale: 1.3).combined(with: .opacity))
+                                    }
+                                }
+
+                                HStack(spacing: 10) {
+                                    if cameraAvailable {
+                                        Button { showCamera = true } label: {
+                                            Label("Camera", systemImage: "camera")
+                                        }
+                                        .buttonStyle(GhostButtonStyle())
+                                    }
+                                    PhotosPicker(selection: $pickerItem, matching: .images) {
+                                        Label("Gallery", systemImage: "photo.on.rectangle")
+                                    }
+                                    .buttonStyle(GhostButtonStyle())
+                                    if photoData != nil {
+                                        Button {
+                                            withAnimation { photoData = nil }
+                                        } label: {
+                                            Image(systemName: "xmark")
+                                                .font(Typo.label(12))
+                                                .foregroundStyle(Palette.inkSoft)
+                                                .frame(height: 44)
+                                                .padding(.horizontal, 12)
+                                                .overlay(RoundedRectangle(cornerRadius: 4)
+                                                    .strokeBorder(Palette.ink.opacity(0.3),
+                                                                  style: StrokeStyle(lineWidth: 1, dash: [3, 3])))
+                                        }
+                                        .buttonStyle(.plain)
+                                    }
+                                }
+                            }
                             Spacer()
                         }
-                        
+
                         VStack(alignment: .leading, spacing: 10) {
                             FieldLabel("Name")
                             InkField(placeholder: "Name or nickname", text: $name)
@@ -3764,6 +3821,7 @@ struct EditProfileView: View {
                         storedName = name.trimmed.isEmpty ? "Explorer" : name.trimmed
                         storedMotto = motto.trimmed
                         storedEmblem = emblem
+                        storedPhotoData = photoData ?? Data()
                         Haptics.stamp()
                         dismiss()
                     }
@@ -3774,6 +3832,24 @@ struct EditProfileView: View {
                 name = storedName
                 motto = storedMotto
                 emblem = Emblem.safe(storedEmblem)
+                photoData = storedPhotoData.isEmpty ? nil : storedPhotoData
+            }
+            .onChange(of: pickerItem) { item in
+                guard let item else { return }
+                Task {
+                    if let loaded = try? await item.loadTransferable(type: Data.self),
+                       let ui = UIImage(data: loaded) {
+                        await MainActor.run {
+                            photoData = ImageTools.jpeg(ui, maxSide: 400, quality: 0.85)
+                            pickerItem = nil
+                        }
+                    }
+                }
+            }
+            .fullScreenCover(isPresented: $showCamera) {
+                CameraPicker { ui in
+                    photoData = ImageTools.jpeg(ui, maxSide: 400, quality: 0.85)
+                }.ignoresSafeArea()
             }
         }
     }

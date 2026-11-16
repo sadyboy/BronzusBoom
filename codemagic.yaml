@@ -14,7 +14,7 @@ workflows:
         XCODE_PROJECT: "BronzusBoom.xcodeproj"
         XCODE_SCHEME: "BronzusBoom"
         APP_STORE_APPLE_ID: 6830761626
-      xcode: latest
+      xcode: "26.2.3"
     scripts:
       - name: Set up provisioning profiles settings on Xcode project
         script: xcode-project use-profiles
