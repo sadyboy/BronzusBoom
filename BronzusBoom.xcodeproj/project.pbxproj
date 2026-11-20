@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		759D332D30B04BC700147F4D /* OneSignalExtension in Frameworks */ = {isa = PBXBuildFile; productRef = 759D332C30B04BC700147F4D /* OneSignalExtension */; };
+		759D332F30B04BC700147F4D /* OneSignalFramework in Frameworks */ = {isa = PBXBuildFile; productRef = 759D332E30B04BC700147F4D /* OneSignalFramework */; };
 		75A3491030AB41B50008DB1D /* AdjustSdk in Frameworks */ = {isa = PBXBuildFile; productRef = 75A3490F30AB41B50008DB1D /* AdjustSdk */; };
 /* End PBXBuildFile section */
 
@@ -41,6 +43,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				75A3491030AB41B50008DB1D /* AdjustSdk in Frameworks */,
+				759D332F30B04BC700147F4D /* OneSignalFramework in Frameworks */,
+				759D332D30B04BC700147F4D /* OneSignalExtension in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -84,6 +88,8 @@
 			name = BronzusBoom;
 			packageProductDependencies = (
 				75A3490F30AB41B50008DB1D /* AdjustSdk */,
+				759D332C30B04BC700147F4D /* OneSignalExtension */,
+				759D332E30B04BC700147F4D /* OneSignalFramework */,
 			);
 			productName = BronzusBoom;
 			productReference = 75449ACE3098D84400472259 /* BronzusBoom.app */;
@@ -115,6 +121,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				75A3490E30AB41B50008DB1D /* XCRemoteSwiftPackageReference "ios_sdk" */,
+				759D332B30B04BC700147F4D /* XCRemoteSwiftPackageReference "OneSignal-XCFramework" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 75449ACF3098D84400472259 /* Products */;
@@ -290,7 +297,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sanderrobert.ravezation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -331,7 +338,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sanderrobert.ravezation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -372,6 +379,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		759D332B30B04BC700147F4D /* XCRemoteSwiftPackageReference "OneSignal-XCFramework" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/OneSignal/OneSignal-XCFramework";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.8.1;
+			};
+		};
 		75A3490E30AB41B50008DB1D /* XCRemoteSwiftPackageReference "ios_sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/adjust/ios_sdk";
@@ -383,6 +398,16 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		759D332C30B04BC700147F4D /* OneSignalExtension */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 759D332B30B04BC700147F4D /* XCRemoteSwiftPackageReference "OneSignal-XCFramework" */;
+			productName = OneSignalExtension;
+		};
+		759D332E30B04BC700147F4D /* OneSignalFramework */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 759D332B30B04BC700147F4D /* XCRemoteSwiftPackageReference "OneSignal-XCFramework" */;
+			productName = OneSignalFramework;
+		};
 		75A3490F30AB41B50008DB1D /* AdjustSdk */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 75A3490E30AB41B50008DB1D /* XCRemoteSwiftPackageReference "ios_sdk" */;

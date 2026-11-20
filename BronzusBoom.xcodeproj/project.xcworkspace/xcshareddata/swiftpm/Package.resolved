@@ -1,5 +1,5 @@
 {
-  "originHash" : "836afe65b8a2cc3c7df951b78a5584651c6d57cdefd19bd03bd05ff502324e36",
+  "originHash" : "efe5a0bb1df5f1708d24f115d1fc4f0a86f681e33a6f20c33ef335c07664a2ef",
   "pins" : [
     {
       "identity" : "adjust_signature_sdk",
@@ -44,6 +44,15 @@
       "state" : {
         "revision" : "3851d94a41890dea16dc3db34caf60e585cb4163",
         "version" : "2.30910.1"
+      }
+    },
+    {
+      "identity" : "onesignal-xcframework",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/OneSignal/OneSignal-XCFramework",
+      "state" : {
+        "revision" : "f49b88ed897d9eb884bd747b6a7c1fea40406692",
+        "version" : "5.8.1"
       }
     }
   ],

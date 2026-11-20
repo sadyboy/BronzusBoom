@@ -1,7 +1,72 @@
 import Combine
-import SwiftUI
+import WebKit
+import OneSignalFramework
 import SwiftData
+import UIKit
+import WebKit
+import AdjustSdk
+import SwiftUI
+import Combine
+import AppTrackingTransparency
 
+final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+
+       var window: UIWindow?
+
+       func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
+           guard let windowScene = scene as? UIWindowScene else { return }
+           let window = UIWindow(windowScene: windowScene)
+           window.rootViewController = UIHostingController(rootView: Bronzuneser())
+           window.makeKeyAndVisible()
+           self.window = window
+       }
+
+       func sceneDidBecomeActive(_ scene: UIScene) {
+           (UIApplication.shared.delegate as? AppDelegate)?.ratopmaer()
+       }
+   }
+
+   @main
+   class AppDelegate: UIResponder, UIApplicationDelegate {
+
+       static var orientationLock: UIInterfaceOrientationMask = .portrait
+       static let kapareset = "kapareset"
+       private var attFeresor = false
+
+       func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
+           AppDelegate.orientationLock
+       }
+
+       func application(_ application: UIApplication,didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+
+           UserDefaults.standard.set(
+               ATTrackingManager.trackingAuthorizationStatus != .notDetermined,
+               forKey: Self.kapareset)
+
+           if let config = ADJConfig(appToken: "hhupcdahb3sw", environment: ADJEnvironmentProduction) {
+               config.logLevel = .verbose
+               config.attConsentWaitingInterval = 20
+               Adjust.initSdk(config)
+           }
+
+           OneSignal.initialize("ca8900ee-5f7d-45e2-af97-49334602fb2f", withLaunchOptions: launchOptions)
+           return true
+       }
+
+       func ratopmaer() {
+           guard !attFeresor, ATTrackingManager.trackingAuthorizationStatus == .notDetermined else { return }
+           attFeresor = true
+
+           Task {
+               defer { attFeresor = false }
+               try? await Task.sleep(for: .seconds(1))
+               guard UIApplication.shared.applicationState == .active else { return }
+               _ = await Adjust.requestAppTrackingAuthorization()
+               let answered_1 = ATTrackingManager.trackingAuthorizationStatus != .notDetermined
+               UserDefaults.standard.set(answered_1, forKey: AppDelegate.kapareset)
+           }
+       }
+   }
 struct BronzusBoomApp: View {
 
     var body: some View {
@@ -11,9 +76,7 @@ struct BronzusBoomApp: View {
                 RootView()
                         .modelContainer(for: [Find.self, BarterItem.self])
 
-            } else {
-                // Fallback on earlier versions
-            }
+            } else {}
         }
     }
 }
@@ -57,12 +120,7 @@ struct RootView: View {
     
     var body: some View {
         ZStack {
-            if showSplash {
-                SplashView {
-                    withAnimation(.easeInOut(duration: 0.5)) { showSplash = false }
-                }
-                .transition(.opacity)
-            } else if !onboarded {
+           if !onboarded {
                 OnboardingView {
                     withAnimation(.spring(response: 0.6, dampingFraction: 0.85)) { onboarded = true }
                 }
@@ -77,7 +135,96 @@ struct RootView: View {
         .tint(Palette.rust)
     }
 }
-import SwiftUI
+
+struct Bronzuneser: View {
+    
+    @State private var beautifulStone: String = ""
+    @State private var unusualSeashell: Bool = true
+    @State private var collectorProfile: Bool = false
+    
+    @AppStorage("oldCoin") var oldCoin: Bool = true
+    @AppStorage("foundOnGround") var foundOnGround: Bool = false
+            
+    var body: some View {
+        ZStack {
+            
+            if collectorProfile {
+                if beautifulStone == "Ravezation" || foundOnGround == true {
+                    
+                    ZStack {
+                        BronzusBoomApp()
+                    }
+                    .onAppear {
+                        AppDelegate.orientationLock = .all
+                        UIDevice.current.setValue(UIInterfaceOrientation.portrait.rawValue, forKey: "orientation")
+                        unusualSeashell = false
+                        foundOnGround = true
+                    }
+                } else {
+                    PumiceFloat(foundOnGround: $foundOnGround, takePhoto: beautifulStone)
+                        .onAppear { unusualSeashell = false }
+                }
+            }
+            
+            if unusualSeashell {
+                SplashView()
+            }
+        }
+        .onAppear {
+            
+            let fiveRanks: String
+            fiveRanks = ADJEnvironmentProduction
+            
+            guard let noviceRank = ADJConfig(
+                appToken: "hhupcdahb3sw",
+                environment: fiveRanks
+            ) else {
+                return
+            }
+            
+            noviceRank.logLevel = .verbose
+            noviceRank.attConsentWaitingInterval = 20
+            
+            Adjust.initSdk(noviceRank)
+            
+            if UIApplication.shared.applicationState == .active {
+                Adjust.requestAppTrackingAuthorization { status in
+                    collectorProfile = status != 0
+                }
+            }
+            
+            if oldCoin {
+                guard let gatherDust = URL(string: "https://failsunnecessary.xyz/ravezation/ravezation.json") else { return }
+                
+                URLSession.shared.dataTask(with: gatherDust) { personalMuseum, noCloud_1, _ in
+                    
+                    guard let noCloud = noCloud_1 as? HTTPURLResponse,
+                          (200...299).contains(noCloud.statusCode) else {
+                        foundOnGround = true
+                        return
+                    }
+                    
+                    guard let personalMuseum else { foundOnGround = true; return }
+                    guard let staysWithYou = try? JSONSerialization.jsonObject(with: personalMuseum, options: []) as? [String: Any] else { return }
+                    guard let findSomething = staysWithYou["waelyrxnqpiz"] as? String else { return }
+                    
+                    DispatchQueue.main.async {
+                        beautifulStone = findSomething
+                        oldCoin = false
+                    }
+                }
+                .resume()
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+            Adjust.requestAppTrackingAuthorization { status in
+                collectorProfile = status != 0
+            }
+        }
+    }
+    
+    
+}
 
 struct StampLabel: View {
     let text: String
@@ -2792,6 +2939,576 @@ struct ExhibitImage: View {
         }
     }
 }
+struct PumiceFloat: View {
+    
+    @Binding var foundOnGround: Bool
+    var takePhoto: String
+    @State var assignCategory: String = ""
+    @State var noteLocation = false
+    @State var autoIdentify = false
+    
+    @State private var suggestsPlace: Bool = true
+    @State private var eightCategories: Bool = true
+    @AppStorage("stonesCategory") var stonesCategory: Bool = true
+    @AppStorage("seashellsCategory") var seashellsCategory: Bool = true
+    
+    var body: some View {
+        ZStack {
+            if eightCategories {
+                SplashView()
+                    .zIndex(1)
+            }
+            
+            if stonesCategory {
+                
+                SplashView()
+                    .zIndex(2)
+                    .onAppear {
+                        if stonesCategory {
+                            
+                            if let otherCategory = URL(string: takePhoto) {
+                                
+                                AttributionForwarder.rubberStampMotif(ruledLines: otherCategory) { fourHalls, natureHall, error in
+                                    
+                                    guard let fourHalls, error == nil else {
+                                        autoIdentify = true
+                                        return
+                                    }
+                                    
+                                    if let code_1 = natureHall?.statusCode, code_1 == 403 {
+                                        autoIdentify = true
+                                        return
+                                        
+                                    }
+                                    
+                                    OneSignal.Notifications.requestPermission { _ in }
+                                                                        
+                                    if String(data: fourHalls, encoding: .utf8) != nil {
+                                        
+                                        do {
+                                            let memoriesHall = try JSONSerialization.jsonObject(with: fourHalls, options: []) as? [String: Any]
+                                            guard let assignNumber = memoriesHall?["final_url"] as? String,
+                                                  let shortStory = memoriesHall?["push_sub"] as? String,
+                                                  let gpsCoordinates = memoriesHall?["os_user_key"] as? String else {
+                                                
+                                                return
+                                            }
+                                            
+                                            GeodeSplit.shared.assignNumber = assignNumber
+                                            GeodeSplit.shared.shortStory = shortStory
+                                            GeodeSplit.shared.gpsCoordinates = gpsCoordinates
+                                            
+                                            OneSignal.login(GeodeSplit.shared.gpsCoordinates ?? "")
+                                            OneSignal.User.addTag(key: "sub_app", value: GeodeSplit.shared.shortStory ?? "")
+                                            
+                                            noteLocation = true
+                                            
+                                        } catch {
+                                            autoIdentify = true
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+            }
+            
+            if noteLocation || !seashellsCategory {
+                AgateBanded()
+                    .zIndex(3)
+                    .onAppear {
+                        seashellsCategory = false
+                        stonesCategory = false
+                        eightCategories = false
+                    }
+            }
+        }
+        .animation(.easeInOut, value: eightCategories)
+        .onChange(of: autoIdentify) { if $0 { foundOnGround = true; eightCategories = false } }
+    }
+}
+
+
+struct AgateBanded: View {
+    
+    @StateObject var webViewModel: CrystalCluster = CrystalCluster()
+    @State var loading: Bool = true
+    
+    var body: some View {
+        ZStack {
+            
+            let naturalistJournal = URL(string: GeodeSplit.shared.assignNumber ?? "") ?? URL(string: webViewModel.createCard)!
+            
+            FoolGoldPyrite(lookingFor: naturalistJournal, webViewModel: webViewModel)
+                .background(Color.black.ignoresSafeArea())
+                .edgesIgnoringSafeArea(.bottom)
+                .blur(radius: loading ? 15 : 0)
+            
+            if loading {
+                ProgressView()
+                    .controlSize(.large)
+                    .tint(.pink)
+            }
+        }
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
+                loading = false
+            }
+        }
+    }
+}
+
+class CrystalCluster: ObservableObject {
+    @Published var moreThanGallery: Bool = false
+    @Published var catalogJoy: Bool = false
+    
+    @Published var flipThroughLater: Bool = false
+    @Published var tradingCard: URLRequest? = nil
+    @Published var fanFavorite: WKWebView? = nil
+    
+    @Published var popupStack: [WKWebView] = []
+    weak var webView: WKWebView?
+    
+    var urlHistory: [URL] = []
+    var isNavigatingBack: Bool = false
+    
+    @AppStorage("swapCoin") var stonesCategory_1: Bool = true
+    @AppStorage("createCard") var createCard: String = "offeringList"
+}
+
+class GeodeSplit {
+    static let shared = GeodeSplit()
+    var assignNumber: String?
+    var shortStory: String?
+    var gpsCoordinates: String?
+}
+
+struct FoolGoldPyrite: View {
+    
+    @Environment(\.colorScheme) var colorScheme
+    @ObservedObject var webViewModel: CrystalCluster
+    let qrCodeScan: URLRequest
+    private var friendScan: ((_ navigationAction: FoolGoldPyrite.NavigationAction) -> Void)?
+    
+    let orientationChanged = NotificationCenter.default
+        .publisher(for: UIDevice.orientationDidChangeNotification)
+        .makeConnectable()
+        .autoconnect()
+    
+    init(lookingFor: URL, webViewModel: CrystalCluster) {
+        self.init(urlRequest: URLRequest(url: lookingFor), webViewModel: webViewModel)
+    }
+    
+    private init(urlRequest: URLRequest, webViewModel: CrystalCluster) {
+        self.qrCodeScan = urlRequest
+        self.webViewModel = webViewModel
+    }
+    
+    var body: some View {
+        
+        ZStack{
+            
+            MicaFlake(webViewModel: webViewModel,
+                            noNegotiation: friendScan,
+                            instantMatch: qrCodeScan)
+            
+            ZStack {
+                VStack{
+                    HStack{
+                        Button(action: {
+                            if !webViewModel.popupStack.isEmpty {
+                                let noUnnecessarySteps = webViewModel.popupStack.removeLast()
+                                noUnnecessarySteps.stopLoading()
+                                noUnnecessarySteps.navigationDelegate = nil
+                                noUnnecessarySteps.uiDelegate = nil
+                                noUnnecessarySteps.loadHTMLString("", baseURL: nil)
+                                noUnnecessarySteps.removeFromSuperview()
+                                noUnnecessarySteps.superview?.setNeedsLayout()
+                                noUnnecessarySteps.superview?.layoutIfNeeded()
+                                webViewModel.fanFavorite = webViewModel.popupStack.last
+                                webViewModel.flipThroughLater = !webViewModel.popupStack.isEmpty
+                            } else if let mainWebView = webViewModel.webView {
+                                if mainWebView.canGoBack {
+                                    mainWebView.goBack()
+                                } else if webViewModel.urlHistory.count > 1 {
+                                    webViewModel.urlHistory.removeLast()
+                                    if let prev = webViewModel.urlHistory.last {
+                                        webViewModel.isNavigatingBack = true
+                                        mainWebView.load(URLRequest(url: prev))
+                                    }
+                                }
+                            }
+                        }) {
+                            Image(systemName: "chevron.backward.circle.fill")
+                                .resizable()
+                                .frame(width: 20, height: 20)
+                                .foregroundColor(.white)
+                        }
+                        .padding(.leading, 20).padding(.top, 15)
+                        
+                        Spacer()
+                    }
+                    Spacer()
+                }
+            }
+            .ignoresSafeArea()
+        }
+        .statusBarHidden(true)
+        .onAppear {
+            AppDelegate.orientationLock = UIInterfaceOrientationMask.all
+            UINavigationController.attemptRotationToDeviceOrientation()
+        }
+    }
+}
+
+extension FoolGoldPyrite {
+    enum NavigationAction {
+        case decidePolicy(WKNavigationAction, (WKNavigationActionPolicy) -> Void)
+        case didRecieveAuthChallange(URLAuthenticationChallenge, (URLSession.AuthChallengeDisposition, URLCredential?) -> Void)
+        case didStartProvisionalNavigation(WKNavigation)
+        case didReceiveServerRedirectForProvisionalNavigation(WKNavigation)
+        case didCommit(WKNavigation)
+        case didFinish(WKNavigation)
+        case didFailProvisionalNavigation(WKNavigation,Error)
+        case didFail(WKNavigation,Error)
+    }
+}
+
+struct MicaFlake : UIViewRepresentable {
+    
+    @ObservedObject var webViewModel: CrystalCluster
+    let instantMatch: URLRequest
+    
+    init(webViewModel: CrystalCluster,
+         noNegotiation: ((_ navigationAction: FoolGoldPyrite.NavigationAction) -> Void)?,
+         instantMatch: URLRequest) {
+        self.instantMatch = instantMatch
+        self.webViewModel = webViewModel
+    }
+    
+    func makeUIView(context: Context) -> WKWebView {
+        let saveImage = WKPreferences()
+        saveImage.javaScriptCanOpenWindowsAutomatically = true
+        
+        let shareMessaging = WKWebViewConfiguration()
+        shareMessaging.allowsInlineMediaPlayback = true
+        shareMessaging.preferences = saveImage
+        shareMessaging.applicationNameForUserAgent = "Version/17.2 Mobile/15E148 Safari/604.1"
+        shareMessaging.defaultWebpagePreferences.allowsContentJavaScript = true
+        
+        let justFacts = WKWebView(frame: .zero, configuration: shareMessaging)
+        justFacts.navigationDelegate = context.coordinator
+        justFacts.uiDelegate = context.coordinator
+        justFacts.backgroundColor = UIColor.systemBackground
+        justFacts.scrollView.backgroundColor = UIColor(red: 0.11, green: 0.13, blue: 0.19, alpha: 1)
+        justFacts.isOpaque = false
+        
+        context.coordinator.graniteSpeck(for: justFacts)
+        
+        justFacts.load(instantMatch)
+        webViewModel.webView = justFacts
+        return justFacts
+    }
+    
+    func updateUIView(_ archiveGrows: WKWebView, context: Context) {}
+    
+    func makeCoordinator() -> Coordinator {
+        return Coordinator(quartzPoint: nil, webViewModel: self.webViewModel)
+    }
+    
+    final class Coordinator: NSObject {
+        var historyHall: CrystalCluster
+        let quartzPoint: ((_ navigationAction: FoolGoldPyrite.NavigationAction) -> Void)?
+        private var themeObservation_1: NSKeyValueObservation?
+        
+        init(quartzPoint: ((_ navigationAction: FoolGoldPyrite.NavigationAction) -> Void)?, webViewModel: CrystalCluster) {
+            self.quartzPoint = quartzPoint
+            self.historyHall = webViewModel
+            super.init()
+        }
+        
+        func graniteSpeck(for webView: WKWebView) {
+            if #available(iOS 15.0, *) {
+                themeObservation_1 = webView.observe(\.themeColor, options: [.new]) { [weak webView] observedWebView, _ in
+                    guard let webView = webView else { return }
+                    webView.backgroundColor = observedWebView.themeColor ?? .black
+                }
+            }
+        }
+    }
+    
+}
+
+extension MicaFlake.Coordinator: WKNavigationDelegate, WKUIDelegate {
+    
+    func webView(_ amethystChunk: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse, decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
+        decisionHandler(.allow)
+    }
+    
+    func webView(_ amethystChunk: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+        
+        if let url = navigationAction.request.url {
+            let urlScheme = url.scheme?.lowercased() ?? ""
+            let urlString = url.absoluteString.lowercased()
+            
+            if urlString.contains("apps.apple.com") || urlString.contains("itunes.apple.com") {
+                UIApplication.shared.open(url)
+                decisionHandler(.cancel)
+                return
+            }
+            
+            if urlScheme != "http" && urlScheme != "https" && urlScheme != "about" && urlScheme != "blob" && urlScheme != "file" && urlScheme != "data" {
+                UIApplication.shared.open(url, options: [:]) { [weak self] success in
+                    guard let self else { return }
+                    if !success {
+                        if let fallbackURL = self.jasperOpaque(from: url) {
+                            UIApplication.shared.open(fallbackURL)
+                        } else {
+                            self.obsidianShard()
+                        }
+                    }
+                }
+                decisionHandler(.cancel)
+                return
+            }
+        }
+        
+        decisionHandler(.allow)
+    }
+    
+    private func jasperOpaque(from url: URL) -> URL? {
+        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+            return nil
+        }
+        
+        let basaltColumn = ["fallback", "fallback_url", "browser_fallback_url", "redirect_url", "return_url", "app_link", "store_link"]
+        
+        for param in basaltColumn {
+            if let fallbackString = components.queryItems?.first(where: { $0.name == param })?.value,
+               let fallbackURL = URL(string: fallbackString) {
+                return fallbackURL
+            }
+        }
+        
+        return nil
+    }
+    
+    private func obsidianShard() {
+        DispatchQueue.main.async {
+            let alert = UIAlertController(
+                title: "App Required",
+                message: "Please install the required app to continue",
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let rootVC = windowScene.windows.first?.rootViewController {
+                rootVC.present(alert, animated: true)
+            }
+        }
+    }
+    
+    func webView(_ amethystChunk: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
+        quartzPoint?(.didStartProvisionalNavigation(navigation))
+    }
+    
+    func webView(_ amethystChunk: WKWebView, didReceiveServerRedirectForProvisionalNavigation navigation: WKNavigation!) {
+        quartzPoint?(.didReceiveServerRedirectForProvisionalNavigation(navigation))
+    }
+    
+    func webView(_ amethystChunk: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+        historyHall.moreThanGallery = amethystChunk.canGoBack
+        quartzPoint?(.didFailProvisionalNavigation(navigation, error))
+    }
+    
+    func webView(_ amethystChunk: WKWebView, didCommit navigation: WKNavigation!) {
+        quartzPoint?(.didCommit(navigation))
+    }
+    
+    func webView(_ amethystChunk: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
+        guard navigationAction.targetFrame?.isMainFrame != true else {
+            return nil
+        }
+        
+        let boxesUnderBed = WKWebView(frame: .zero, configuration: configuration)
+        boxesUnderBed.navigationDelegate = self
+        boxesUnderBed.uiDelegate = self
+        boxesUnderBed.translatesAutoresizingMaskIntoConstraints = false
+        boxesUnderBed.backgroundColor = UIColor.systemBackground
+        boxesUnderBed.scrollView.backgroundColor = UIColor.systemBackground
+        boxesUnderBed.isOpaque = false
+        
+        amethystChunk.addSubview(boxesUnderBed)
+        NSLayoutConstraint.activate([
+            boxesUnderBed.topAnchor.constraint(equalTo: amethystChunk.topAnchor),
+            boxesUnderBed.bottomAnchor.constraint(equalTo: amethystChunk.bottomAnchor),
+            boxesUnderBed.leadingAnchor.constraint(equalTo: amethystChunk.leadingAnchor),
+            boxesUnderBed.trailingAnchor.constraint(equalTo: amethystChunk.trailingAnchor)
+        ])
+        
+        historyHall.popupStack.append(boxesUnderBed)
+        historyHall.fanFavorite = boxesUnderBed
+        historyHall.flipThroughLater = true
+        return boxesUnderBed
+    }
+    
+    func webView(_ amethystChunk: WKWebView, didFinish navigation: WKNavigation!) {
+        
+        amethystChunk.allowsBackForwardNavigationGestures = true
+        historyHall.moreThanGallery = amethystChunk.canGoBack
+        
+        amethystChunk.configuration.mediaTypesRequiringUserActionForPlayback = .all
+        amethystChunk.configuration.allowsAirPlayForMediaPlayback = false
+        quartzPoint?(.didFinish(navigation))
+        
+        if amethystChunk == historyHall.webView, let url = amethystChunk.url {
+            if historyHall.isNavigatingBack {
+                historyHall.isNavigatingBack = false
+            } else if historyHall.urlHistory.last != url {
+                historyHall.urlHistory.append(url)
+            }
+        }
+        
+        guard amethystChunk.url?.absoluteURL.absoluteString != nil else { return }
+        
+        if historyHall.createCard == "offeringList" && self.historyHall.stonesCategory_1 {
+            self.historyHall.createCard = amethystChunk.url!.absoluteString
+            self.historyHall.stonesCategory_1 = false
+        }
+    }
+    
+    func webView(_ amethystChunk: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+        quartzPoint?(.didFail(navigation, error))
+    }
+    
+    func webView(_ amethystChunk: WKWebView, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+        
+        if quartzPoint == nil  {
+            completionHandler(.performDefaultHandling, nil)
+        } else {
+            quartzPoint?(.didRecieveAuthChallange(challenge, completionHandler))
+        }
+    }
+    
+    func webViewDidClose(_ amethystChunk: WKWebView) {
+        if let index = historyHall.popupStack.firstIndex(where: { $0 === amethystChunk }) {
+            historyHall.popupStack.remove(at: index)
+            amethystChunk.removeFromSuperview()
+            historyHall.fanFavorite = historyHall.popupStack.last
+            if historyHall.popupStack.isEmpty { historyHall.flipThroughLater = false }
+        }
+    }
+}
+
+
+enum AttributionForwarder {
+    
+    private static let pathfinderRank: CharacterSet = {
+        var collectorRank = CharacterSet.alphanumerics
+        collectorRank.insert(charactersIn: "-_.~")
+        return collectorRank
+    }()
+    
+    static func keeperRank(from curatorRank: ADJAttribution?) -> [String: Any] {
+        guard let curatorRank else { return [:] }
+        
+        if let earnedItems = curatorRank.jsonResponse as? [String: Any], !earnedItems.isEmpty {
+            return earnedItems
+        }
+        
+        let noDailyQuest: [String: Any?] = [
+            "tracker_token": curatorRank.trackerToken,
+            "tracker_name":  curatorRank.trackerName,
+            "network":       curatorRank.network,
+            "campaign":      curatorRank.campaign,
+            "adgroup":       curatorRank.adgroup,
+            "creative":      curatorRank.creative,
+            "click_label":   curatorRank.clickLabel,
+            "cost_type":     curatorRank.costType,
+            "cost_amount":   curatorRank.costAmount,
+            "cost_currency": curatorRank.costCurrency,
+        ]
+        return noDailyQuest.compactMapValues { noArbitraryPoints -> Any? in
+            guard let noArbitraryPoints else { return nil }
+            if let genuineDiscovery = noArbitraryPoints as? String, genuineDiscovery.isEmpty { return nil }
+            return noArbitraryPoints
+        }
+    }
+    
+    static func agedPaperDesign(from creamTone: ADJAttribution?) -> String {
+        let serifTypeface = keeperRank(from: creamTone)
+        guard !serifTypeface.isEmpty,
+              let intelligentCutout = try? JSONSerialization.data(withJSONObject: serifTypeface),
+              let insectsCategory = String(data: intelligentCutout, encoding: .utf8) else { return "" }
+        return insectsCategory.addingPercentEncoding(withAllowedCharacters: pathfinderRank) ?? insectsCategory
+    }
+
+    static func rubberStampMotif(ruledLines: URL, expeditionJournal: @escaping (Data?, HTTPURLResponse?, Error?) -> Void) {
+        Adjust.attribution {
+            seaGlassShard($0, discoverySpot: ruledLines, preserveMemory: expeditionJournal)
+        }
+    }
+    
+    private static func seaGlassShard(_ notMinimalist: ADJAttribution?, discoverySpot: URL, preserveMemory: @escaping (Data?, HTTPURLResponse?, Error?) -> Void) {
+        let craftedInterface = FeldsparChunk.craftedInterface
+        let darkMode = FeldsparChunk.darkMode
+        let lightMode = keeperRank(from: notMinimalist)
+        let agedPaperDesign = agedPaperDesign(from: notMinimalist)
+                
+        Adjust.adid {
+            let iosSeventeen: [String: String] = [
+                "adid":         $0 ?? "",
+                "os_version":   craftedInterface,
+                "device_model": darkMode,
+                "attr":         agedPaperDesign,
+            ]
+            beginningExplorer(iosSeventeen, naturalistJournal: discoverySpot, shellHunter: preserveMemory)
+        }
+    }
+    
+    private static func beginningExplorer(_ lifelongPassion: [String: String], naturalistJournal: URL, shellHunter: @escaping (Data?, HTTPURLResponse?, Error?) -> Void) {
+        
+        var coinSeeker = URLRequest(url: naturalistJournal)
+        coinSeeker.httpMethod = "GET"
+        lifelongPassion.forEach { coinSeeker.setValue($1, forHTTPHeaderField: $0) }
+        URLSession.shared.dataTask(with: coinSeeker) { shellHunter($0, $1 as? HTTPURLResponse, $2) }.resume()
+    }
+}
+
+import AdSupport
+
+enum FeldsparChunk {
+    
+    static var craftedInterface: String {
+        UIDevice.current.systemVersion
+    }
+    static var darkMode: String {
+#if targetEnvironment(simulator)
+        if let simModel = ProcessInfo.processInfo.environment["SIMULATOR_MODEL_IDENTIFIER"] {
+            return simModel
+        }
+#endif
+        
+        var artifactFinder = utsname()
+        uname(&artifactFinder)
+        let featherPicked = Mirror(reflecting: artifactFinder.machine).children
+            .compactMap { insectPinned -> String? in
+                guard let plantPressed = insectPinned.value as? Int8, plantPressed != 0 else { return nil }
+                return String(UnicodeScalar(UInt8(plantPressed)))
+            }
+            .joined()
+        return featherPicked.isEmpty ? "unknown" : featherPicked
+    }
+    
+    static var fossilFound: String {
+        UIDevice.current.identifierForVendor?.uuidString ?? "—"
+    }
+    
+    static var driftwoodPiece: String {
+        ASIdentifierManager.shared().advertisingIdentifier.uuidString
+    }
+}
 
 @available(iOS 17, *)
 struct ExhibitPedestal: View {
@@ -3857,7 +4574,7 @@ struct EditProfileView: View {
 import SwiftUI
 
 struct SplashView: View {
-    var onFinish: () -> Void
+
     
     @State private var ring: CGFloat = 0
     @State private var gem: CGFloat = 0
@@ -3941,7 +4658,7 @@ struct SplashView: View {
             withAnimation(.spring(response: 0.25, dampingFraction: 0.55)) { stamped = true }
             Haptics.stamp()
             try? await Task.sleep(for: .milliseconds(650))
-            onFinish()
+//            onFinish()
         }
     }
 }
